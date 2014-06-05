@@ -15,17 +15,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @IBOutlet var theTableView: UITableView
     
-    var sections: String[] = ["Part 1", "Part 2"]
+    var sections: String[] = ["Cheese", "Wine", "Cider" ,"Salami"]
     var cellTitles = Dictionary<String,Array<String>>()
     var selectedColor = UIColor()
     var currentSelected: NSIndexPath?
     
     override func viewDidLoad() {
+        super.viewDidLoad()
+        
         theTableView.delegate = self;
         theTableView.dataSource = self;
         setupListNames()
-        
-        super.viewDidLoad()
     }
 
     override func didReceiveMemoryWarning() {
@@ -61,12 +61,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         if let destVC: DetailViewController = segue.destinationViewController as? DetailViewController {
             destVC.makeRandomBackgroundColor()
             destVC.myDelegate = self
+            
+            if let selectedIndex = currentSelected {
+                let sectionName = sections[selectedIndex.section]
+                if let rowNames: Array = cellTitles["\(sectionName)"] {
+                    destVC.textField.text = rowNames[ selectedIndex.row ]
+                }
+            }
         }
     }
     
     //MARK: UITableViewDelegate
-    func tableView(tableView: UITableView!, didSelectRowAtIndexPath indexPath: NSIndexPath!) {
+    func tableView(tableView: UITableView!, willSelectRowAtIndexPath indexPath: NSIndexPath!) -> NSIndexPath! {
         currentSelected = indexPath
+        return indexPath
     }
     
     
@@ -81,7 +89,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             cellTitles["\(sectionName)"] = rowNames
             theTableView.reloadRowsAtIndexPaths([selectedIndexPath], withRowAnimation: .Right)
         }
-        NSLog("%@", cellTitles)
     }
     
     //MARK: UITableViewDataSource

@@ -13,14 +13,16 @@ protocol DetailDelegate {
     
 }
 
-class DetailViewController: UIViewController {
+class DetailViewController: UIViewController, UITextFieldDelegate {
+    @IBOutlet var textField : UITextField
     
     var myDelegate: DetailDelegate?;
     
     override func viewDidLoad() {
         super.viewDidLoad()
         makeRandomBackgroundColor()
-        // Do any additional setup after loading the view.
+        
+        textField.delegate = self
     }
     
     func makeRandomBackgroundColor() {
@@ -43,18 +45,21 @@ class DetailViewController: UIViewController {
     @IBAction func dismissButton() {
         dismissViewControllerAnimated(true, completion: nil)
         if let delegate = myDelegate {
-            delegate.changedName("Name Changed!")
+            delegate.changedName(textField.text)
         }
     }
 
-    /*
-    // #pragma mark - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue?, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
+    //MARK: UITextFieldDelegate
+    func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
+        return true
     }
-    */
-
+    
+    func textFieldShouldEndEditing(textField: UITextField) -> Bool {
+        return true
+    }
+    
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        self.textField.resignFirstResponder()
+        return true
+    }
 }
