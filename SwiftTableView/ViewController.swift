@@ -9,25 +9,40 @@
 import UIKit
 
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, DetailDelegate {
     
     //MARK: Properties
     
     @IBOutlet var theTableView: UITableView
     
     var sections: String[] = ["Part 1", "Part 2"]
+    var cellTitles = Dictionary<String,Array<String>>()
     var selectedColor = UIColor()
+    var currentSelected: NSIndexPath?
     
     override func viewDidLoad() {
-        super.viewDidLoad()
+        theTableView.delegate = self;
+        theTableView.dataSource = self;
+        setupListNames()
         
-        self.theTableView.delegate = self;
-        self.theTableView.dataSource = self;
+        super.viewDidLoad()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    //MARK: Setup Methods
+    func setupListNames() {
+        for (index,value) in enumerate(sections) {
+            var titlesInSection = Array<String>()
+            for i in 0..20 {
+                titlesInSection.append("Row \(i) in \(value)")
+            }
+            cellTitles.updateValue(titlesInSection, forKey: value)
+        }
+        
     }
     
     
@@ -43,44 +58,63 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue!, sender: AnyObject!)  {
-        if segue.destinationViewController is DetailViewController {
-//            segue.destinationViewController.backgroundColor = self.getRandomColor()
+        if let destVC: DetailViewController = segue.destinationViewController as? DetailViewController {
+            destVC.makeRandomBackgroundColor()
+            destVC.myDelegate = self
         }
     }
     
     //MARK: UITableViewDelegate
     func tableView(tableView: UITableView!, didSelectRowAtIndexPath indexPath: NSIndexPath!) {
-        
+        currentSelected = indexPath
     }
     
+    
+    //MARK: DetailDelegate
+    func changedName(newName: String) {
+        if let selectedIndexPath = currentSelected {
+            let sectionName = sections[ selectedIndexPath.section ]
+            var rowNames = cellTitles["\(sectionName)"]!
+            let rowIndex: Int = selectedIndexPath.row
+            rowNames[ rowIndex ] = newName
+            
+            cellTitles["\(sectionName)"] = rowNames
+            theTableView.reloadRowsAtIndexPaths([selectedIndexPath], withRowAnimation: .Right)
+        }
+        NSLog("%@", cellTitles)
+    }
     
     //MARK: UITableViewDataSource
     
     func tableView(tableView: UITableView!, cellForRowAtIndexPath indexPath: NSIndexPath!) -> UITableViewCell! {
         let cell: UITableViewCell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as UITableViewCell
-        cell.textLabel.text = "Section: \(indexPath.section) & Row: \(indexPath.row)"
-        cell.backgroundColor = self.getRandomColor()
+        cell.backgroundColor = getRandomColor()
+        let sectionName = sections[indexPath.section]
+        if let rowNames: Array = cellTitles["\(sectionName)"] {
+            cell.textLabel.text = rowNames[ indexPath.row ]
+        }
         
         return cell
     }
     
     func numberOfSectionsInTableView(tableView: UITableView!) -> Int {
-        return self.sections.count
+        return sections.count
     }
     
     func tableView(tableView: UITableView!, titleForHeaderInSection section:Int) ->String! {
-        return self.sections[section]
+        return sections[section]
     }
     
     func sectionIndexTitlesForTableView(tableView: UITableView!) -> AnyObject[]! {
-        return self.sections
+        return sections
     }
     
     func tableView(tableView: UITableView!, numberOfRowsInSection section: Int) -> Int {
-        if section == 0 {
-            return 20
+        let sectionName = sections[section]
+        if let rowNames: Array = cellTitles["\(sectionName)"] {
+            return rowNames.count
         } else {
-            return 10
+            return 0
         }
     }
 
